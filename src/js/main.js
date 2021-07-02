@@ -87,6 +87,9 @@ function applyDarkMode() {
     var textarea = document.getElementById("text");
     textarea.classList.toggle("dark-mode-textarea");
 
+    var textarea = document.getElementById("autocomplete");
+    textarea.classList.toggle("dark-mode-textarea");
+
     var anchors = document.getElementsByTagName('a');
     for (i = 0; i < anchors.length; i++) {
         anchors[i].classList.toggle("dark-mode-a");

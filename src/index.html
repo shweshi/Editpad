@@ -36,6 +36,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
     <link rel="manifest" href="/manifest.json">
 
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-MGKFYEV4JG"></script>
     <script>
@@ -76,7 +77,8 @@
             &#127763; Day/Night
         </button>
         <div id="tooltip" class="tooltip">
-            <button id="share" class="header-button share-button" onclick="share()"><img width="12px" height="12px" src="images/share.png"></img> Share</button>
+            <button id="share" class="header-button share-button" onclick="share()"><img width="12px" height="12px"
+                    src="images/share.png"></img> Share</button>
             <div id="bottom" class="bottom">
                 <h3>Share a link of this snippet [BETA]</h3>
                 <input type="text" id="shareLink" class="input"></input>
@@ -170,6 +172,7 @@
     <main>
         <form id="textform" class="form" action="download.html" method="post" name="textform" target="download_frame">
             <label>
+                <textarea id="autocomplete" type="text" class="textarea"></textarea>
                 <textarea id="text" class="textarea" cols="100" rows="30" name="text"
                     onclick="if(cleanRequired)document.textform.text.value=''; cleanRequired = 0;">Enter or paste your text here. To download and save it, click on the Download button.</textarea>
             </label>
@@ -245,6 +248,123 @@
 
         reader.readAsText(file);
         setCleanRequired(0);
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        //dummy random output. You can use api
+        var example = {
+            1: "dummy text 1",
+            2: "dummy text 2"
+        };
+        function randomobj(obj) {
+            var objkeys = Object.keys(obj)
+            return objkeys[Math.floor(Math.random() * objkeys.length)]
+        }
+
+        var autocomplete = document.querySelectorAll("#autocomplete");
+        var mainInput = document.querySelectorAll("#text");
+        var foundName = '';
+        var predicted = '';
+        var apibusy = false;
+        var mlresponsebusy = false;
+
+        $('#text').keyup(function (e) {
+            //check if null value send
+            if (mainInput[0].value == '') {
+                autocomplete[0].textContent = '';
+                return;
+            }
+            //check if space key press
+            if (e.keyCode == 32) {
+                CallMLDataSetAPI(e);
+                scrolltobototm();
+                return;
+            }
+            //check if Backspace key press
+            if (e.key == 'Backspace') {
+                autocomplete[0].textContent = '';
+                predicted = '';
+                apibusy = true;
+                return;
+            }
+            //check if ArrowRight or Tab key press
+            if (e.key != 'ArrowRight') {
+                if (autocomplete[0].textContent != '' && predicted) {
+                    var first_character = predicted.charAt(0);
+                    if (e.key == first_character) {
+                        var s1 = predicted;
+                        var s2 = s1.substr(1);
+                        predicted = s2;
+                        apibusy = true;
+                    } else {
+                        autocomplete[0].textContent = '';
+                        apibusy = false;
+                    }
+                } else {
+                    autocomplete[0].textContent = '';
+                    apibusy = false;
+                }
+                return;
+            } else {
+                if (predicted) {
+                    if (apibusy == true) {
+                        apibusy = false;
+                    }
+                    if (apibusy == false) {
+                        mainInput[0].value = foundName;
+                        autocomplete[0].textContent = '';
+                    }
+                } else {
+                    return;
+                }
+            }
+
+            function CallMLDataSetAPI(event) {
+                //call api and get response
+                var response = {
+                    "predicted": example[randomobj(example)]
+                };
+                if (response.predicted != '') {
+                    predicted = response.predicted;
+                    var new_text = event.target.value + response.predicted;
+                    autocomplete[0].textContent = new_text;
+                    foundName = new_text
+                } else {
+                    predicted = '';
+                    var new_text1 = event.target.value + predicted;
+                    autocomplete[0].textContent = new_text1;
+                    foundName = new_text1
+                }
+            };
+        });
+        function scrolltobototm() {
+            var target = document.getElementById('autocomplete');
+            var target1 = document.getElementById('text');
+            setInterval(function () {
+                target.scrollTop = target1.scrollHeight;
+            }, 1000);
+        };
+        $("#text").keydown(function (e) {
+            if (e.keyCode === 9) {
+                e.preventDefault();
+                presstabkey();
+            }
+        });
+        function presstabkey() {
+            if (predicted) {
+                if (apibusy == true) {
+                    apibusy = false;
+                }
+                if (apibusy == false) {
+                    mainInput[0].value = foundName;
+                    autocomplete[0].textContent = '';
+                }
+            } else {
+                return;
+            }
+        };
     });
 </script>
 
